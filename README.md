@@ -2,12 +2,12 @@
   <a href="#"><img src="https://readme-typing-svg.herokuapp.com/?center=true&vCenter=true&lines=Construction+Cluster+HA+k3s;"></a>
 </p>
 <p align="center">
-    🚀 Ce playbook construira un cluster HA Kubernetes avec `k3s`, `kube-vip` et `MetalLB` via `ansible`.
+    🚀 Ce playbook construira un cluster HA Kubernetes avec k3s, kube-vip et MetalLB via ansible.
 </p>
 <p align="center">
-    <a href="https://github.com/Drack0rr/k3s-ansible#Compatiblité"><img src="https://img.shields.io/badge/How_to_use-%2341454A.svg?style=for-the-badge&logo=target&logoColor=white"> </a>
-    <a href="https://github.com/Drack0rr/k3s-ansible#Prérequis"><img src="https://img.shields.io/badge/Monitoring-%2341454A.svg?style=for-the-badge&logo=target&logoColor=white"> </a>
-    <a href="https://github.com/Drack0rr/k3s-ansible#Utilisation"><img src="https://img.shields.io/badge/Auto_update-%2341454A.svg?style=for-the-badge&logo=target&logoColor=white"> </a>
+    <a href="https://github.com/Drack0rr/k3s-ansible#--compatibilit%C3%A9"><img src="https://img.shields.io/badge/Compatibilité-%2341454A.svg?style=for-the-badge&logo=target&logoColor=white"> </a>
+    <a href="https://github.com/Drack0rr/k3s-ansible#--pr%C3%A9requis"><img src="https://img.shields.io/badge/Prérequis-%2341454A.svg?style=for-the-badge&logo=target&logoColor=white"> </a>
+    <a href="https://github.com/Drack0rr/k3s-ansible#--utilisation"><img src="https://img.shields.io/badge/Utilisation-%2341454A.svg?style=for-the-badge&logo=target&logoColor=white"> </a>
     <br /><br />
 
 # 📖  Compatibilité
