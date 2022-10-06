@@ -1,3 +1,4 @@
+---
 # Rhel Family upgrade
 - name: Mettre à jour le cache des repositories
   dnf:

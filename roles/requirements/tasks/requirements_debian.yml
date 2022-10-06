@@ -1,17 +1,14 @@
+---
 # Debian Family upgrade
 - name: Mettre à jour le cache des repositories
   apt:
-    update_cache: yes
+    update_cache: true
+    cache_valid_time: 3600
 
 - name: Mettre à jour tous les packages vers leur dernière version
   apt:
     name: "*"
     state: latest
-
-- name: Mettre à niveau le système d'exploitation (apt-get dist-upgrade)
-  apt:
-    upgrade: dist
-
 
 - name: Vérification à partir du fichier reboot_required
   register: reboot_required_file
