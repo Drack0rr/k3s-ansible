@@ -28,11 +28,11 @@ Sur l'architecture du processeur :
 
 - L'environnement de déploiement doit avoir Ansible 2.4.0+.
   
-- [`netaddr` package](https://pypi.org/project/netaddr/)doit être disponible pour Ansible. Si vous avez installé Ansible via apt, cela est déjà pris en charge. Si vous avez installé Ansible via `pip`, assurez-vous de l'installer `netaddr` dans l'environnement virtuel respectif.
+- [`netaddr` package](https://pypi.org/project/netaddr/) doit être disponible pour Ansible. Si vous avez installé Ansible via apt, cela est déjà pris en charge. Si vous avez installé Ansible via `pip`, assurez-vous de l'installer `netaddr` dans le meme environnement virtuel que celui-ci.
   
 - `serveur` et `agent` les nœuds doivent avoir un accès SSH sans mot de passe, sinon vous pouvez fournir des arguments pour fournir des informations d'identification `--ask-pass --ask-become-pass` à chaque commande.
 
-- Vous devrez également installer les collections utilisées par ce playbook en exécutant `ansible-galaxy collection install -r ./collections/requirements.yml`
+- Vous devrez également installer les collections utilisées par ce playbook en exécutant `ansible-galaxy install collection -r ./collections/requirements.yml`
 
 # 🚀  Utilisation
 
