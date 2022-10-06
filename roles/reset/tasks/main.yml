@@ -48,7 +48,7 @@
 
 - name: Reload daemon_reload
   systemd:
-    daemon_reload: yes
+    daemon_reload: true
 
 - name: Supprimer le répertoire tmp utilisé pour les manifestes
   file:

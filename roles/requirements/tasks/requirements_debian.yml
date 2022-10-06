@@ -31,12 +31,12 @@
 - name: Installation prérequis géneraux Debian
   apt:
     name: "{{ item }}"
-    update_cache: yes
+    update_cache: true
     state: latest
   loop: "{{ prerequis_generaux }}"
 
 - name: Installation paquet NFS
   apt:
     name: "nfs-common"
-    update_cache: yes
+    update_cache: true
     state: latest

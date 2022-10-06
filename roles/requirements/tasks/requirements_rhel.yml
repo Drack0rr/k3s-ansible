@@ -1,7 +1,7 @@
 # Rhel Family upgrade
 - name: Mettre à jour le cache des repositories
   dnf:
-    update_cache: yes
+    update_cache: true
 
 - name: Mettre à jour tous les packages vers leur dernière version
   dnf:
@@ -26,7 +26,7 @@
 - name: Installation prérequis géneraux rhel
   dnf:
     name: "{{ item }}"
-    update_cache: yes
+    update_cache: true
     state: latest
   loop: 
     - "{{ prerequis_generaux }}"
@@ -34,4 +34,4 @@
 
 - name: Update repositories cache
   dnf:
-    update_cache: yes
+    update_cache: true

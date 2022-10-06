@@ -11,6 +11,6 @@
 - name: Activer et vérifier le service K3s
   systemd:
     name: k3s-node
-    daemon_reload: yes
+    daemon_reload: true
     state: restarted
-    enabled: yes
+    enabled: true

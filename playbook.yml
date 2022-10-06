@@ -1,31 +1,29 @@
 ---
 - name: Post installation
   hosts: all
-  gather_facts: True
-  become: True
-  vars_files:
-    - "vars/default.yml"
+  gather_facts: true
+  become: true
   roles:
     - requirements
 
 - hosts: k3s_cluster
-  gather_facts: True
-  become: True
+  gather_facts: true
+  become: true
   roles:
     - role: prereq
     - role: download
 
 - hosts: master
-  become: True
+  become: true
   roles:
     - role: k3s/master
 
 - hosts: node
-  become: True
+  become: true
   roles:
     - role: k3s/node
 
 - hosts: master
-  become: True
+  become: true
   roles:
     - role: k3s/post

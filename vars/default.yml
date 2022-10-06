@@ -1,9 +1,0 @@
-#Reboot
-reboot_connect_timeout: 5
-reboot_post_reboot_delay: 15
-reboot_timeout: 600
-reboot_pre_reboot_delay: 0
-
-#Prerequis
-prerequis_generaux: [ 'nano', 'sudo', 'mlocate', 'curl', 'bash-completion', 'python3-netaddr' ]
-prerequis_rhel: [ 'epel-release', 'yum-utils']
