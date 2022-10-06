@@ -1,0 +1,197 @@
+---
+
+- name: Nettoyer les exécutions précédentes de k3s-init
+  systemd:
+    name: k3s-init
+    state: stopped
+  failed_when: false
+
+- name: Nettoyer les exécutions précédentes de k3s-init
+  command: systemctl reset-failed k3s-init
+  failed_when: false
+  changed_when: false
+  args:
+    warn: false  # Le module ansible systemd ne prend pas en charge la réinitialisation en échec
+
+- name: Créer un répertoire de manifestes sur le premier master
+  file:
+    path: /var/lib/rancher/k3s/server/manifests
+    state: directory
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == hostvars[groups['master'][0]]['ansible_hostname']
+
+- name: Copiez le manifeste vip rbac sur le premier master
+  template:
+    src: "vip.rbac.yaml.j2"
+    dest: "/var/lib/rancher/k3s/server/manifests/vip-rbac.yaml"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == hostvars[groups['master'][0]]['ansible_hostname']
+
+- name: Copiez le manifeste vip sur le premier master
+  template:
+    src: "vip.yaml.j2"
+    dest: "/var/lib/rancher/k3s/server/manifests/vip.yaml"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == hostvars[groups['master'][0]]['ansible_hostname']
+
+# ceux-ci seront copiés et installés maintenant, puis testés plus tard en appliquant la configuration
+- name: Copier le namespace metallb sur le premier master
+  template:
+    src: "metallb.namespace.j2"
+    dest: "/var/lib/rancher/k3s/server/manifests/metallb-namespace.yaml"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == hostvars[groups['master'][0]]['ansible_hostname']
+
+- name: Copier le namespace metallb sur le premier master
+  template:
+    src: "metallb.crds.j2"
+    dest: "/var/lib/rancher/k3s/server/manifests/metallb-crds.yaml"
+    owner: root
+    group: root
+    mode: 0644
+  when: ansible_hostname == hostvars[groups['master'][0]]['ansible_hostname']
+
+- name: Cluster d'initialisation à l'intérieur du service de transit de k3s-init
+  command:
+    cmd: "systemd-run -p RestartSec=2 \
+                      -p Restart=on-failure \
+                      --unit=k3s-init \
+                      k3s server {{ server_init_args }}"
+    creates: "{{ systemd_dir }}/k3s.service"
+  args:
+    warn: false 
+
+- name: Verification
+  block:
+    - name: Vérifiez que tous les nœuds se sont réellement joints (vérifiez k3s-init.service si cela échoue)
+      command:
+        cmd: k3s kubectl get nodes -l "node-role.kubernetes.io/master=true" -o=jsonpath="{.items[*].metadata.name}"
+      register: nodes
+      until: nodes.rc == 0 and (nodes.stdout.split() | length) == (groups['master'] | length)
+      retries: "{{ retry_count | default(20) }}"
+      delay: 10
+      changed_when: false
+  always:
+    - name: Enregistrer les logs de k3s-init.service
+      include_tasks: fetch_k3s_init_logs.yml
+      when: log_destination
+      vars:
+        log_destination: >-
+          {{ lookup('ansible.builtin.env', 'ANSIBLE_K3S_LOG_DIR', default=False) }}
+    - name: Tue le service temporaire utilisé pour l'initialisation
+      systemd:
+        name: k3s-init
+        state: stopped
+      failed_when: false
+  when: not ansible_check_mode
+
+- name: Copie le fichier de service K3s
+  register: k3s_service
+  template:
+    src: "k3s.service.j2"
+    dest: "{{ systemd_dir }}/k3s.service"
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Activer et vérifier le service K3s
+  systemd:
+    name: k3s
+    daemon_reload: yes
+    state: restarted
+    enabled: yes
+
+- name: Attendre le node-token
+  wait_for:
+    path: /var/lib/rancher/k3s/server/node-token
+
+- name: Enregistre le mode d'accès au fichier de node-token
+  stat:
+    path: /var/lib/rancher/k3s/server
+  register: p
+
+- name: Modifier l'accès aux fichiers node-token
+  file:
+    path: /var/lib/rancher/k3s/server
+    mode: "g+rx,o+rx"
+
+- name: Lire le node-token à partir de master
+  slurp:
+    src: /var/lib/rancher/k3s/server/node-token
+  register: node_token
+
+- name: Store Master node-token
+  set_fact:
+    token: "{{ node_token.content | b64decode | regex_replace('\n', '') }}"
+
+- name: Restaurer l'accès au fichier de node-token
+  file:
+    path: /var/lib/rancher/k3s/server
+    mode: "{{ p.stat.mode }}"
+
+- name: Créer un répertoire .kube
+  file:
+    path: ~{{ ansible_user }}/.kube
+    state: directory
+    owner: "{{ ansible_user }}"
+    mode: "u=rwx,g=rx,o="
+
+- name: Copier le fichier de configuration dans le répertoire home de l'utilisateur
+  copy:
+    src: /etc/rancher/k3s/k3s.yaml
+    dest: ~{{ ansible_user }}/.kube/config
+    remote_src: yes
+    owner: "{{ ansible_user }}"
+    mode: "u=rw,g=,o="
+
+- name: Configurer le cluster kubectl pour {{ endpoint_url }}
+  command: >-
+    k3s kubectl config set-cluster default
+      --server={{ endpoint_url }}
+      --kubeconfig ~{{ ansible_user }}/.kube/config
+  changed_when: true
+  vars:
+    endpoint_url: >-
+      https://{{ apiserver_endpoint | ansible.utils.ipwrap }}:6443
+
+- name: Créer un lien symbolique kubectl
+  file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/kubectl
+    state: link
+
+- name: Créer un lien symbolique crictl
+  file:
+    src: /usr/local/bin/k3s
+    dest: /usr/local/bin/crictl
+    state: link
+
+- name: Obtenir le contenu du dossier manifestes
+  find:
+    paths: /var/lib/rancher/k3s/server/manifests
+    file_type: file
+  register: k3s_server_manifests
+
+- name: Obtenir les sous-répertoires du dossier des manifestes
+  find:
+    paths: /var/lib/rancher/k3s/server/manifests
+    file_type: directory
+  register: k3s_server_manifests_directories
+
+- name: Supprimez les manifestes et les dossiers qui ne sont nécessaires qu'au démarrage du cluster afin que k3s ne s'applique pas automatiquement au démarrage
+  file:
+    path: "{{ item.path }}"
+    state: absent
+  with_items:
+    - "{{ k3s_server_manifests.files }}"
+    - "{{ k3s_server_manifests_directories.files }}"
+  loop_control:
+    label: "{{ item.path }}"

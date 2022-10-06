@@ -1,0 +1,28 @@
+---
+# Télécharger les logs de k3s-init.service des nœuds vers le localhost.
+# Notez que log_destination doit être défini.
+
+- name: Récupérer les logs k3s-init.service
+  ansible.builtin.command:
+    cmd: journalctl --all --unit=k3s-init.service
+  changed_when: false
+  register: k3s_init_log
+
+- name: Créer {{ log_destination }}
+  delegate_to: localhost
+  run_once: true
+  become: false
+  ansible.builtin.file:
+    path: "{{ log_destination }}"
+    state: directory
+    mode: "0755"
+
+- name: Enregistre les logs dans {{ log_destination }}
+  delegate_to: localhost
+  become: false
+  ansible.builtin.template:
+    src: content.j2
+    dest: "{{ log_destination }}/k3s-init@{{ ansible_hostname }}.log"
+    mode: 0644
+  vars:
+    content: "{{ k3s_init_log.stdout }}"

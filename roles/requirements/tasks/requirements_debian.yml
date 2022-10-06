@@ -1,0 +1,42 @@
+# Debian Family upgrade
+- name: Mettre à jour le cache des repositories
+  apt:
+    update_cache: yes
+
+- name: Mettre à jour tous les packages vers leur dernière version
+  apt:
+    name: "*"
+    state: latest
+
+- name: Mettre à niveau le système d'exploitation (apt-get dist-upgrade)
+  apt:
+    upgrade: dist
+
+
+- name: Vérification à partir du fichier reboot_required
+  register: reboot_required_file
+  stat:
+    path: /var/run/reboot-required
+
+- name: Lancement du reboot
+  reboot:
+    msg: "Reboot via ansible"
+    connect_timeout: "{{ reboot_connect_timeout }}"
+    reboot_timeout: "{{ reboot_timeout }}"
+    pre_reboot_delay: "{{reboot_pre_reboot_delay}}"
+    post_reboot_delay: "{{ reboot_post_reboot_delay }}"
+    test_command: uptime
+  when: reboot_required_file.stat.exists
+
+- name: Installation prérequis géneraux Debian
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+    state: latest
+  loop: "{{ prerequis_generaux }}"
+
+- name: Installation paquet NFS
+  apt:
+    name: "nfs-common"
+    update_cache: yes
+    state: latest

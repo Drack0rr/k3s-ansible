@@ -1,0 +1,8 @@
+---
+- name: Redhat
+  include: requirements_rhel.yml
+  when: ansible_os_family == 'RedHat'
+
+- name: Debian
+  include: requirements_debian.yml
+  when: ansible_os_family == "Debian"

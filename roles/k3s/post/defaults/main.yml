@@ -1,0 +1,3 @@
+---
+# Délai d'attente pour les services MetalLB en attente
+metal_lb_available_timeout: 120s
