@@ -4,7 +4,7 @@ ansible_user: admin-local
 
 ansible_connection: ssh
 
-k3s_version: v1.24.4+k3s1
+k3s_version: v1.24.6+k3s1
 
 systemd_dir: /etc/systemd/system
 
@@ -44,11 +44,11 @@ extra_agent_args: >-
   {{ extra_args }}
 
 # Tag d'image pour kube-vip
-kube_vip_tag_version: "v0.5.0"
+kube_vip_tag_version: "v0.5.5"
 
 # Tag d'image pour metal lb
-metal_lb_speaker_tag_version: "v0.13.5"
-metal_lb_controller_tag_version: "v0.13.5"
+metal_lb_speaker_tag_version: "v0.13.6"
+metal_lb_controller_tag_version: "v0.13.6"
 
 # Plage d'adresses IP pour l'équilibreur de charge metallb
 metal_lb_ip_range: "192.168.40.60-192.168.40.75"
