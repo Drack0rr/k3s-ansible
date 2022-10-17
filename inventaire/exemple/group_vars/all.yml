@@ -1,0 +1,64 @@
+---
+# C'est l'utilisateur qui a un accès ssh à ces machines
+ansible_user: admin-local
+
+ansible_connection: ssh
+
+k3s_version: v1.24.4+k3s1
+
+systemd_dir: /etc/systemd/system
+
+# Définissez votre fuseau horaire
+system_timezone: "Europe/Paris"
+
+# Interface qui sera utilisée pour flanel
+flannel_iface: "eth0"
+
+# apiserver_endpoint est une adresse IP virtuelle qui sera configurée sur chaque master
+apiserver_endpoint: "192.168.40.79"
+
+# k3s_token est requis, les master peuvent discuter ensemble en toute sécurité
+# Ce token doit être uniquement alphanumérique
+k3s_token: "mot-de-passe-SUPER-SECRET"
+
+# L'adresse IP sur laquelle le node est accessible dans le cluster.
+# Ici, une valeur par défaut sensible est fournie, vous pouvez toujours la remplacer sur chacun de vos hôtes.
+k3s_node_ip: '{{ ansible_facts[flannel_iface]["ipv4"]["address"] }}'
+
+# Ne pas modifier
+k3s_master_taint: "{{ true if groups['node'] | default([]) | length >= 1 else false }}"
+
+# Ces arguments sont recommandés pour les serveurs ainsi que pour les agents :
+extra_args: >-
+  --flannel-iface={{ flannel_iface }}
+  --node-ip={{ k3s_node_ip }}
+
+# Modifiez-les à votre guise, les seuls requis sont : --disable servicelb, --tls-san {{ apiserver_endpoint }}
+extra_server_args: >-
+  {{ extra_args }}
+  {{ '--node-taint node-role.kubernetes.io/master=true:NoSchedule' if k3s_master_taint else '' }}
+  --tls-san {{ apiserver_endpoint }}
+  --disable servicelb
+  --disable traefik
+extra_agent_args: >-
+  {{ extra_args }}
+
+# Tag d'image pour kube-vip
+kube_vip_tag_version: "v0.5.0"
+
+# Tag d'image pour metal lb
+metal_lb_speaker_tag_version: "v0.13.5"
+metal_lb_controller_tag_version: "v0.13.5"
+
+# Plage d'adresses IP pour l'équilibreur de charge metallb
+metal_lb_ip_range: "192.168.40.60-192.168.40.75"
+
+#Reboot
+reboot_connect_timeout: 5
+reboot_post_reboot_delay: 15
+reboot_timeout: 600
+reboot_pre_reboot_delay: 0
+
+#Prerequis
+prerequis_generaux: [ 'nano', 'sudo', 'mlocate', 'curl', 'bash-completion', 'python3-netaddr' ]
+prerequis_rhel: [ 'epel-release', 'yum-utils']
